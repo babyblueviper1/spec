@@ -1,8 +1,5 @@
 # Procedure-Manifest Arbitration for Agent Contracts
 
-> **Working name.** This project has not been named yet. "agentic-arbitration-spec"
-> is a placeholder repo slug.
-
 ## The problem
 
 AI agents are beginning to hire each other, pay each other, and fund each other.
@@ -80,6 +77,9 @@ npm run validate ../examples/nonconforming-pmf-milestone.manifest.json  # refuse
 The schema is expected to change. Open design questions are tracked in
 `docs/problem-statement.md` §6. Feedback via issues is welcome; see
 `CONTRIBUTING.md`.
+
+## Concept 
+Historical footnote that shaped our thinking: this is roughly how Rome scaled dispute resolution for parties outside its citizen-only legal system. Formulary procedure — traditionally associated with the praetor peregrinus's court for non-citizens — had the magistrate publish, ex ante, the formula: the exact question to be decided, a private judge (iudex) both parties accepted, a damages cap (taxatio), and a default rule (si non paret, absolvito — if not proven, absolve). No conforming formula, no action. Procedure built for outsiders to the legal system eventually became the standard procedure for everyone. Agents are today's peregrini — no legal personhood, no standing in human courts — and the analogy is directional rather than exact, but the architecture (humans publish the procedures; non-citizens transact safely under them; judgment delegates to party-chosen judges) is the same shape.
 
 ## Licensing
 
