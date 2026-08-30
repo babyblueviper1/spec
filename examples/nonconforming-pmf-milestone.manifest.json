@@ -1,0 +1,111 @@
+{
+  "spec_version": "0.0.1",
+  "manifest": {
+    "id": "b2d90311-77aa-4c02-9df3-pmf-demo",
+    "title": "Series-Agent seed tranche 2: product-market fit milestone",
+    "description": "Investor agent releases tranche 2 if the venture agent 'achieves product-market fit signals'. This manifest is DELIBERATELY NON-CONFORMING; see WHY-NONCONFORMING.md.",
+    "created_at": "2026-08-20T17:00:00Z"
+  },
+  "parties": [
+    {
+      "role": "payer",
+      "name": "seedwise-investor-agent",
+      "identity": { "scheme": "erc8004-agent", "value": "eip155:8453/erc8004:5120" }
+    },
+    {
+      "role": "payee",
+      "name": "venture-agent-swarmco",
+      "identity": { "scheme": "erc8004-agent", "value": "eip155:8453/erc8004:6001" }
+    }
+  ],
+  "engagement": {
+    "deliverable_summary": "Demonstrate product-market fit to unlock tranche 2 of seed funding.",
+    "value": {
+      "asset": { "chain_id": 8453, "symbol": "USDC", "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" },
+      "amount": "250000000000"
+    }
+  },
+  "requirements": [
+    {
+      "id": "R1",
+      "title": "Product-market fit achieved",
+      "statement": "The venture has achieved strong product-market fit signals, including impressive traction, healthy growth, and enthusiastic users.",
+      "evaluation": { "method": "llm_judge" }
+    },
+    {
+      "id": "R2",
+      "title": "Revenue momentum",
+      "statement": "Monthly recurring revenue shows strong momentum over the tranche period.",
+      "evaluation": { "method": "measurement" }
+    }
+  ],
+  "evidence": {
+    "items": [
+      {
+        "id": "E1",
+        "title": "Venture traction narrative and metrics deck",
+        "type": "url",
+        "submitter_role": "payee",
+        "transformation": "none",
+        "required": true,
+        "supports": ["R1"]
+      },
+      {
+        "id": "E2",
+        "title": "Advisor memo on market reception",
+        "type": "text",
+        "submitter_role": "attestor",
+        "transformation": "none",
+        "required": false,
+        "supports": ["R1"]
+      }
+    ],
+    "submission_window_seconds": 86400
+  },
+  "judge": {
+    "panel": [
+      {
+        "id": "J1",
+        "model": {
+          "family": "frontier",
+          "name": "best-available-frontier-model",
+          "version": "latest",
+          "hosting": "provider_api"
+        },
+        "runs": 4
+      }
+    ],
+    "aggregation": { "within_judge": "majority", "across_panel": "majority" },
+    "sampling": { "temperature": 0.7 },
+    "prompts": [
+      {
+        "id": "P1",
+        "role": "system",
+        "template": "You are a fair judge. Use your best judgment and any knowledge you have about the venture and current market conditions to decide whether product-market fit was achieved."
+      }
+    ],
+    "fallback_ladder": []
+  },
+  "adjudication": {
+    "burden_of_proof": "payee",
+    "confidence_threshold": 0.6,
+    "default_rule": { "outcome": "split" },
+    "on_missing_required_evidence": "default_rule",
+    "injection_screening": { "enabled": false, "action_on_detection": "strike_evidence" },
+    "outcome_rule": { "rule": "all_must_pass" }
+  },
+  "remedy": {
+    "structure": "challenge_window_escrow",
+    "ruling_map": {
+      "refused": "status_quo",
+      "payer_wins": "refund",
+      "payee_wins": "release"
+    }
+  },
+  "arbitrator": {
+    "fee": { "amount": "50000000", "asset_symbol": "USDC", "paid_by": "split" },
+    "erc792_profile": {
+      "ruling_options": ["RefusedToArbitrate", "PayerWins", "PayeeWins"]
+    }
+  }
+}

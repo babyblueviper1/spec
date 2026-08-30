@@ -1,0 +1,25 @@
+{
+  "name": "@unnamed/procedure-manifest-validator",
+  "version": "0.0.1",
+  "description": "Reference conformance validator for procedure manifests (v0.0). Structural validation + conformance rules C1-C12: the refusal boundary, executable.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "pm-validate": "./src/cli.ts"
+  },
+  "scripts": {
+    "validate": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

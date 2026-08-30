@@ -1,0 +1,9 @@
+Specification prose and documentation in this repository (the contents of
+docs/ and the Markdown files in spec/) are licensed under the Creative Commons
+Attribution 4.0 International License (CC-BY-4.0).
+
+You should have received a copy of the license along with this work. If not,
+see <https://creativecommons.org/licenses/by/4.0/>.
+
+Code, JSON schemas, and example manifests are licensed separately under
+Apache-2.0; see LICENSE.
