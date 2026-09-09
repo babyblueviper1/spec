@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Judge Result Contract",
+  "description": "v0.0.2. The authoritative machine-level result object every evaluation run must produce as its final non-empty output line (strict JSON). Only 'verdict' has contractual authority; all other fields are evidence-only and preserved in the transcript without effect on aggregation, resolution, or remedy. A run whose final line does not conform is an UNRESOLVED run. See spec/adjudication.md.",
+  "type": "object",
+  "required": ["verdict"],
+  "additionalProperties": true,
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "UNRESOLVED"],
+      "description": "The binding projection. PASS/FAIL judge the requirement; UNRESOLVED records that this run could not establish it."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "EVIDENCE-ONLY. Attribution and calibration research. Zero contractual authority."
+    },
+    "rationale": {
+      "type": "string",
+      "description": "EVIDENCE-ONLY. Short justification citing admissible evidence."
+    }
+  }
+}
