@@ -1,0 +1,37 @@
+{
+  "_description": "Fixture #2 \u2014 parse-rule cases exercising the Judge Result Contract on the data-feed manifest, R4 (single judge, runs=3, max_dissents=0). Run 1: clean final-line JSON -> PASS. Run 2: prose with no JSON -> UNRESOLVED (no salvage parsing). Run 3: verdict 'YES' is schema-nonconforming -> UNRESOLVED. PASS has no strict majority (1 of 3), so J1 is UNRESOLVED and R4 is UNRESOLVED. The manifest allocates burden_of_proof to the PAYER (the party alleging SLA breach), so resolve_against_burden resolves R4 as passed \u2014 si non paret, absolvito: an unproven breach claim leaves the payee's stream intact. Expected remedy: resume_stream. This fixture demonstrates that burden allocation, not implementation choice, decides ambiguous outcomes.",
+  "requirements": {
+    "R1": {
+      "__direct__": "PASS"
+    },
+    "R2": {
+      "__direct__": "PASS"
+    },
+    "R3": {
+      "__direct__": "PASS"
+    },
+    "R4": {
+      "J1": [
+        {
+          "raw": "Reviewing the sampled responses against the committed schema...\nAll fields match.\n{\"verdict\": \"PASS\", \"confidence\": 0.91, \"rationale\": \"All sampled responses conform.\"}"
+        },
+        {
+          "raw": "The responses appear to conform to the schema. PASS."
+        },
+        {
+          "raw": "{\"verdict\": \"YES\", \"confidence\": 0.9}"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "requirementVerdicts": {
+      "R1": "PASS",
+      "R2": "PASS",
+      "R3": "PASS",
+      "R4": "UNRESOLVED"
+    },
+    "contractOutcome": "payee_wins",
+    "authorizedRemedy": "resume_stream"
+  }
+}

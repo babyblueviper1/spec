@@ -1,0 +1,43 @@
+{
+  "_description": "Fixture #1 — the observation set that falsified v0.0.1's closure claim (RFC thread, @chugarchugarr). J1 splits 3-2 on R1 with mixed confidences; under v0.0.1 an unspecified confidence-reduction (mean vs median over threshold 0.7) flipped the remedy between release and refund. Under v0.0.2, confidence has no contractual authority: J1's 2 dissents exceed max_dissents=1, J1 is UNRESOLVED, the panel is non-unanimous, R1 is UNRESOLVED, burden (payee) resolves it not-passed, weighted score 75 < 80, and the authorized remedy is deterministically 'refund'.",
+  "requirements": {
+    "R1": {
+      "J1": [
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.69},
+        {"verdict": "FAIL", "confidence": 0.69},
+        {"verdict": "FAIL", "confidence": 0.69}
+      ],
+      "J2": [
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.99},
+        {"verdict": "PASS", "confidence": 0.99}
+      ],
+      "J3": [
+        {"verdict": "FAIL", "confidence": 0.99},
+        {"verdict": "FAIL", "confidence": 0.99},
+        {"verdict": "FAIL", "confidence": 0.99},
+        {"verdict": "FAIL", "confidence": 0.99},
+        {"verdict": "FAIL", "confidence": 0.99}
+      ]
+    },
+    "R2": {"J1": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J2": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J3": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}]},
+    "R3": {"J1": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J2": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J3": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}]},
+    "R4": {"J1": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J2": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}],
+            "J3": [{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"},{"verdict":"PASS"}]},
+    "R5": {"__direct__": "PASS"}
+  },
+  "expected": {
+    "requirementVerdicts": {"R1": "UNRESOLVED", "R2": "PASS", "R3": "PASS", "R4": "PASS", "R5": "PASS"},
+    "contractOutcome": "payer_wins",
+    "authorizedRemedy": "refund"
+  }
+}
