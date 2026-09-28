@@ -146,9 +146,14 @@ ERC-8004 validation entry is one kind of admissible attestation).
 3. **Partial rulings.** ERC-792 rulings are discrete. Requirement-weighted
    outcomes imply proportional escrow release. Encode split ratios in the
    ruling map, or keep v0 binary and defer?
-4. **Confidence semantics.** Judges self-report confidence today; calibration
-   is unsolved. Is a per-requirement confidence threshold meaningful, or should
-   ambiguity be inferred structurally (panel disagreement rates)?
+4. **Confidence semantics.** *Resolved in v0.0.2, by the RFC thread:* ambiguity
+   is inferred structurally (run/panel disagreement), and self-reported
+   confidence is evidence-only with zero contractual authority. An executable
+   counterexample showed any outcome-relevant confidence reduction left
+   unspecified could flip remedies on identical observations. See
+   `spec/adjudication.md` and `CHANGELOG.md`. The successor open question:
+   richer aggregation rules (e.g. severity-adjusted panels per the Rasch/IRT
+   discussion in the ERC-8183 thread) as declared options.
 5. **Multi-party engagements.** v0.0 fixes exactly one payer and one payee.
    Milestone-funded ventures involve tranches and possibly multiple funders.
    Extend the party model now or profile it later?

@@ -2,25 +2,52 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://example.invalid/spec/procedure-manifest.schema.json",
   "title": "Procedure Manifest",
-  "description": "v0.0 (DRAFT). A signed, machine-readable adjudication procedure pinned at contract-formation time. Structural validity per this schema is necessary but NOT sufficient for arbitrability; see spec/conformance.md for conformance rules C1-C12 enforced by the reference validator.",
+  "description": "v0.0.2 (DRAFT). A signed, machine-readable adjudication procedure pinned at contract-formation time. Structural validity per this schema is necessary but NOT sufficient for arbitrability; see spec/conformance.md for conformance rules enforced by the reference validator, and spec/adjudication.md for the normative adjudication state machine and Judge Result Contract.",
   "type": "object",
-  "required": ["spec_version", "manifest", "parties", "engagement", "requirements", "evidence", "judge", "adjudication", "remedy", "arbitrator"],
+  "required": [
+    "spec_version",
+    "manifest",
+    "parties",
+    "engagement",
+    "requirements",
+    "evidence",
+    "judge",
+    "adjudication",
+    "remedy",
+    "arbitrator"
+  ],
   "additionalProperties": false,
   "properties": {
     "spec_version": {
       "type": "string",
       "description": "Version of this spec the manifest targets.",
-      "const": "0.0.1"
+      "const": "0.0.2"
     },
     "manifest": {
       "type": "object",
-      "required": ["id", "title", "created_at"],
+      "required": [
+        "id",
+        "title",
+        "created_at"
+      ],
       "additionalProperties": false,
       "properties": {
-        "id": { "type": "string", "minLength": 8, "description": "Globally unique manifest id (UUID recommended)." },
-        "title": { "type": "string", "minLength": 1 },
-        "description": { "type": "string" },
-        "created_at": { "type": "string", "format": "date-time" }
+        "id": {
+          "type": "string",
+          "minLength": 8,
+          "description": "Globally unique manifest id (UUID recommended)."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "parties": {
@@ -29,22 +56,44 @@
       "description": "Declared roles. v0.0 requires exactly one payer and exactly one payee (conformance C1). Additional attestor parties are permitted.",
       "items": {
         "type": "object",
-        "required": ["role", "identity"],
+        "required": [
+          "role",
+          "identity"
+        ],
         "additionalProperties": false,
         "properties": {
-          "role": { "type": "string", "enum": ["payer", "payee", "attestor"] },
-          "name": { "type": "string" },
+          "role": {
+            "type": "string",
+            "enum": [
+              "payer",
+              "payee",
+              "attestor"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
           "identity": {
             "type": "object",
-            "required": ["scheme", "value"],
+            "required": [
+              "scheme",
+              "value"
+            ],
             "additionalProperties": false,
             "properties": {
               "scheme": {
                 "type": "string",
-                "enum": ["eip155-address", "erc8004-agent", "did"],
+                "enum": [
+                  "eip155-address",
+                  "erc8004-agent",
+                  "did"
+                ],
                 "description": "eip155-address: chain-scoped account address. erc8004-agent: ERC-8004 identity registry reference. did: W3C DID."
               },
-              "value": { "type": "string", "minLength": 1 }
+              "value": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           }
         }
@@ -52,29 +101,57 @@
     },
     "engagement": {
       "type": "object",
-      "required": ["deliverable_summary", "value"],
+      "required": [
+        "deliverable_summary",
+        "value"
+      ],
       "additionalProperties": false,
       "properties": {
-        "deliverable_summary": { "type": "string", "minLength": 1, "description": "Human-readable summary. Not used in judgment; the rubric governs." },
+        "deliverable_summary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable summary. Not used in judgment; the rubric governs."
+        },
         "value": {
           "type": "object",
-          "required": ["asset", "amount"],
+          "required": [
+            "asset",
+            "amount"
+          ],
           "additionalProperties": false,
           "properties": {
             "asset": {
               "type": "object",
-              "required": ["chain_id", "symbol"],
+              "required": [
+                "chain_id",
+                "symbol"
+              ],
               "additionalProperties": false,
               "properties": {
-                "chain_id": { "type": "integer", "description": "EIP-155 chain id." },
-                "symbol": { "type": "string" },
-                "address": { "type": "string", "description": "Token contract address; omit for native asset." }
+                "chain_id": {
+                  "type": "integer",
+                  "description": "EIP-155 chain id."
+                },
+                "symbol": {
+                  "type": "string"
+                },
+                "address": {
+                  "type": "string",
+                  "description": "Token contract address; omit for native asset."
+                }
               }
             },
-            "amount": { "type": "string", "pattern": "^[0-9]+$", "description": "Integer amount in the asset's smallest unit, as a decimal string." }
+            "amount": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "Integer amount in the asset's smallest unit, as a decimal string."
+            }
           }
         },
-        "deadline": { "type": "string", "format": "date-time" }
+        "deadline": {
+          "type": "string",
+          "format": "date-time"
+        }
       }
     },
     "requirements": {
@@ -83,22 +160,58 @@
       "description": "The rubric. Each item must be individually evaluable and bound to exactly one evaluation method.",
       "items": {
         "type": "object",
-        "required": ["id", "title", "statement", "evaluation"],
+        "required": [
+          "id",
+          "title",
+          "statement",
+          "evaluation"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^R[0-9]+$" },
-          "title": { "type": "string", "minLength": 1 },
-          "statement": { "type": "string", "minLength": 1, "description": "The requirement as the judge will read it. Write for evaluability: observable, bounded, decomposed." },
+          "id": {
+            "type": "string",
+            "pattern": "^R[0-9]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "statement": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The requirement as the judge will read it. Write for evaluability: observable, bounded, decomposed."
+          },
           "evaluation": {
             "type": "object",
-            "required": ["method"],
+            "required": [
+              "method"
+            ],
             "additionalProperties": false,
             "properties": {
-              "method": { "type": "string", "enum": ["llm_judge", "measurement", "attestation"] },
-              "judge_prompt_id": { "type": "string", "description": "Required when method=llm_judge (conformance C3). Must reference judge.prompts[].id." },
-              "measurement_source_id": { "type": "string", "description": "Required when method=measurement (conformance C2). Must reference measurement_sources[].id." },
-              "attestor_role_name": { "type": "string", "description": "Required when method=attestation. Must match a declared attestor party's name." },
-              "pass_criteria": { "type": "string", "description": "For measurement/attestation: the machine-checkable condition (e.g. 'uptime_pct >= 99.5'). For llm_judge: optional clarifying criteria included in the judge context." }
+              "method": {
+                "type": "string",
+                "enum": [
+                  "llm_judge",
+                  "measurement",
+                  "attestation"
+                ]
+              },
+              "judge_prompt_id": {
+                "type": "string",
+                "description": "Required when method=llm_judge (conformance C3). Must reference judge.prompts[].id."
+              },
+              "measurement_source_id": {
+                "type": "string",
+                "description": "Required when method=measurement (conformance C2). Must reference measurement_sources[].id."
+              },
+              "attestor_role_name": {
+                "type": "string",
+                "description": "Required when method=attestation. Must match a declared attestor party's name."
+              },
+              "pass_criteria": {
+                "type": "string",
+                "description": "For measurement/attestation: the machine-checkable condition (e.g. 'uptime_pct >= 99.5'). For llm_judge: optional clarifying criteria included in the judge context."
+              }
             }
           }
         }
@@ -106,7 +219,10 @@
     },
     "evidence": {
       "type": "object",
-      "required": ["items", "submission_window_seconds"],
+      "required": [
+        "items",
+        "submission_window_seconds"
+      ],
       "additionalProperties": false,
       "properties": {
         "items": {
@@ -115,30 +231,78 @@
           "description": "The closed record. Only items declared here, submitted by declared roles, are admissible.",
           "items": {
             "type": "object",
-            "required": ["id", "type", "submitter_role", "transformation", "required", "supports"],
+            "required": [
+              "id",
+              "type",
+              "submitter_role",
+              "transformation",
+              "required",
+              "supports"
+            ],
             "additionalProperties": false,
             "properties": {
-              "id": { "type": "string", "pattern": "^E[0-9]+$" },
-              "title": { "type": "string" },
-              "type": { "type": "string", "enum": ["url", "file", "text", "metric_report"] },
-              "submitter_role": { "type": "string", "enum": ["payer", "payee", "attestor"], "description": "Must correspond to a declared party (conformance C8)." },
+              "id": {
+                "type": "string",
+                "pattern": "^E[0-9]+$"
+              },
+              "title": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "url",
+                  "file",
+                  "text",
+                  "metric_report"
+                ]
+              },
+              "submitter_role": {
+                "type": "string",
+                "enum": [
+                  "payer",
+                  "payee",
+                  "attestor"
+                ],
+                "description": "Must correspond to a declared party (conformance C8)."
+              },
               "transformation": {
                 "type": "string",
-                "enum": ["none", "render_screenshot", "extract_text"],
+                "enum": [
+                  "none",
+                  "render_screenshot",
+                  "extract_text"
+                ],
                 "description": "Applied before the judge sees the item. render_screenshot is REQUIRED for url evidence feeding an llm_judge requirement (conformance C11): rendering strips most textual prompt injection."
               },
-              "required": { "type": "boolean", "description": "If true and absent at close of submission window, the default rule applies per adjudication.on_missing_required_evidence." },
+              "required": {
+                "type": "boolean",
+                "description": "If true and absent at close of submission window, the default rule applies per adjudication.on_missing_required_evidence."
+              },
               "supports": {
                 "type": "array",
                 "minItems": 1,
-                "items": { "type": "string", "pattern": "^R[0-9]+$" },
+                "items": {
+                  "type": "string",
+                  "pattern": "^R[0-9]+$"
+                },
                 "description": "Requirement ids this item is admissible for. Judges see only supporting evidence per requirement."
               },
-              "max_bytes": { "type": "integer", "minimum": 1 }
+              "max_bytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "transformation_pin": {
+                "type": "string",
+                "description": "Pinned identifier (tool+version, or content hash) of the transformation implementation. REQUIRED when transformation != none (conformance C15): an outcome-relevant transformation is part of the committed procedure. The arbitrator MUST preserve original submission, transformed representation, and this pin in the transcript."
+              }
             }
           }
         },
-        "submission_window_seconds": { "type": "integer", "minimum": 3600 }
+        "submission_window_seconds": {
+          "type": "integer",
+          "minimum": 3600
+        }
       }
     },
     "measurement_sources": {
@@ -146,20 +310,50 @@
       "description": "Named doors in the closed record: the only admissible answers to factual questions.",
       "items": {
         "type": "object",
-        "required": ["id", "question", "provider"],
+        "required": [
+          "id",
+          "question",
+          "provider"
+        ],
         "additionalProperties": false,
         "properties": {
-          "id": { "type": "string", "pattern": "^M[0-9]+$" },
-          "description": { "type": "string" },
-          "question": { "type": "string", "minLength": 1, "description": "The factual question this source answers, stated precisely (units, window, method)." },
+          "id": {
+            "type": "string",
+            "pattern": "^M[0-9]+$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The factual question this source answers, stated precisely (units, window, method)."
+          },
           "provider": {
             "type": "object",
-            "required": ["type", "identity"],
+            "required": [
+              "type",
+              "identity"
+            ],
             "additionalProperties": false,
             "properties": {
-              "type": { "type": "string", "enum": ["http_api", "onchain_oracle", "named_attestor"] },
-              "identity": { "type": "string", "minLength": 1, "description": "Endpoint URL, oracle contract address, or attestor identity." },
-              "reading_procedure": { "type": "string", "description": "How the reading is taken (path, aggregation, sampling schedule)." }
+              "type": {
+                "type": "string",
+                "enum": [
+                  "http_api",
+                  "onchain_oracle",
+                  "named_attestor"
+                ]
+              },
+              "identity": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Endpoint URL, oracle contract address, or attestor identity."
+              },
+              "reading_procedure": {
+                "type": "string",
+                "description": "How the reading is taken (path, aggregation, sampling schedule)."
+              }
             }
           }
         }
@@ -167,7 +361,12 @@
     },
     "judge": {
       "type": "object",
-      "required": ["panel", "aggregation", "sampling", "prompts"],
+      "required": [
+        "panel",
+        "aggregation",
+        "sampling",
+        "prompts"
+      ],
       "additionalProperties": false,
       "properties": {
         "panel": {
@@ -175,77 +374,203 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["id", "model", "runs"],
+            "required": [
+              "id",
+              "model",
+              "runs"
+            ],
             "additionalProperties": false,
             "properties": {
-              "id": { "type": "string", "pattern": "^J[0-9]+$" },
+              "id": {
+                "type": "string",
+                "pattern": "^J[0-9]+$"
+              },
               "model": {
                 "type": "object",
-                "required": ["name", "version", "hosting"],
+                "required": [
+                  "name",
+                  "version",
+                  "hosting"
+                ],
                 "additionalProperties": false,
                 "properties": {
-                  "family": { "type": "string", "description": "Model family, for heterogeneity checks across the panel." },
-                  "name": { "type": "string", "minLength": 1 },
-                  "version": { "type": "string", "minLength": 1, "description": "Exact version identifier. 'latest' is non-conforming by definition." },
-                  "weights_hash": { "type": "string", "description": "Content hash of weights. Required when hosting=self_hosted (conformance C12)." },
-                  "hosting": { "type": "string", "enum": ["self_hosted", "provider_api"] }
+                  "family": {
+                    "type": "string",
+                    "description": "Model family, for heterogeneity checks across the panel."
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Exact version identifier. 'latest' is non-conforming by definition."
+                  },
+                  "weights_hash": {
+                    "type": "string",
+                    "description": "Content hash of weights. Required when hosting=self_hosted (conformance C12)."
+                  },
+                  "hosting": {
+                    "type": "string",
+                    "enum": [
+                      "self_hosted",
+                      "provider_api"
+                    ]
+                  }
                 }
               },
-              "runs": { "type": "integer", "minimum": 1, "description": "Runs per requirement for this judge. Must be odd (conformance C4)." }
+              "runs": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Runs per requirement for this judge. Must be odd (conformance C4)."
+              }
             }
           }
         },
         "aggregation": {
           "type": "object",
-          "required": ["within_judge", "across_panel"],
+          "required": [
+            "within_judge",
+            "across_panel"
+          ],
           "additionalProperties": false,
           "properties": {
-            "within_judge": { "type": "string", "enum": ["majority"] },
-            "across_panel": { "type": "string", "enum": ["majority", "unanimous"], "description": "majority requires odd panel size (conformance C4)." }
-          }
+            "within_judge": {
+              "type": "object",
+              "required": [
+                "rule",
+                "max_dissents"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "rule": {
+                  "type": "string",
+                  "enum": [
+                    "majority_with_dissent_cap"
+                  ],
+                  "description": "v0.0.2 implements only majority_with_dissent_cap: the judge's verdict is the strict-majority run verdict iff the number of dissenting runs (any run whose verdict differs from the majority verdict, including UNRESOLVED runs) is <= max_dissents; otherwise the judge's verdict is UNRESOLVED."
+                },
+                "max_dissents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Maximum tolerated dissenting runs per judge. Must be < runs/2 for every panel judge (conformance C14). Setting 0 requires unanimity across runs."
+                }
+              }
+            },
+            "across_panel": {
+              "type": "object",
+              "required": [
+                "rule"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "rule": {
+                  "type": "string",
+                  "enum": [
+                    "unanimous"
+                  ],
+                  "description": "v0.0.2 implements only unanimous: the requirement verdict is PASS/FAIL iff every panel judge returns that same verdict; any disagreement, or any judge resolving UNRESOLVED, makes the requirement UNRESOLVED. Additional rules (e.g. severity-adjusted aggregation) are future work."
+                }
+              }
+            }
+          },
+          "description": "Run- and panel-level aggregation over Judge Result Contract verdicts {PASS, FAIL, UNRESOLVED}. Fully specified: every transformation capable of changing contractual state is committed here (see spec/adjudication.md)."
         },
         "sampling": {
           "type": "object",
-          "required": ["temperature"],
+          "required": [
+            "temperature"
+          ],
           "additionalProperties": false,
           "properties": {
-            "temperature": { "type": "number", "description": "Must be 0 in v0.0 (conformance C9)." },
-            "seed_commitment": { "type": "string", "description": "Optional commitment to RNG seeds, revealed with transcripts." }
+            "temperature": {
+              "type": "number",
+              "description": "Must be 0 in v0.0 (conformance C9)."
+            },
+            "seed_commitment": {
+              "type": "string",
+              "description": "Optional commitment to RNG seeds, revealed with transcripts."
+            }
           }
         },
         "prompts": {
           "type": "array",
           "minItems": 1,
-          "description": "Agreed verbatim at signing. Nothing outside these prompts, the requirement statements, and admissible evidence enters the judge context.",
+          "description": "Agreed verbatim at signing. Nothing outside these prompts, the requirement statements, and admissible evidence enters the judge context. Evaluation prompts MUST instruct the model to end output with a Judge Result Contract line (see spec/adjudication.md): the final non-empty line is strict JSON {\"verdict\": PASS|FAIL|UNRESOLVED, ...}; only the verdict is binding.",
           "items": {
             "type": "object",
-            "required": ["id", "role", "template"],
+            "required": [
+              "id",
+              "role",
+              "template"
+            ],
             "additionalProperties": false,
             "properties": {
-              "id": { "type": "string", "pattern": "^P[0-9]+$" },
-              "role": { "type": "string", "enum": ["system", "evaluation"] },
-              "template": { "type": "string", "minLength": 1, "description": "May reference {{requirement.statement}}, {{requirement.pass_criteria}}, and {{evidence.<id>}} placeholders only." }
+              "id": {
+                "type": "string",
+                "pattern": "^P[0-9]+$"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "evaluation"
+                ]
+              },
+              "template": {
+                "type": "string",
+                "minLength": 1,
+                "description": "May reference {{requirement.statement}}, {{requirement.pass_criteria}}, and {{evidence.<id>}} placeholders only."
+              }
             }
           }
         },
         "fallback_ladder": {
           "type": "array",
-          "description": "Ordered. Required (non-empty) if any panel model has hosting=provider_api (conformance C5).",
+          "description": "Ordered. Required (non-empty) for EVERY manifest in v0.0.2 (conformance C5, revised): pinned hashes pin a name, not continued availability, so every judge needs a liveness policy agreed at formation \u2014 self-hosted models included.",
           "items": {
             "type": "object",
-            "required": ["when", "action"],
+            "required": [
+              "when",
+              "action"
+            ],
             "additionalProperties": false,
             "properties": {
-              "when": { "type": "string", "enum": ["model_unavailable", "model_deprecated"] },
-              "action": { "type": "string", "enum": ["substitute", "abort_to_default_rule"] },
+              "when": {
+                "type": "string",
+                "enum": [
+                  "model_unavailable",
+                  "model_deprecated"
+                ]
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "substitute",
+                  "abort_to_default_rule"
+                ]
+              },
               "substitute": {
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
-                  "name": { "type": "string" },
-                  "version": { "type": "string" },
-                  "hosting": { "type": "string", "enum": ["self_hosted", "provider_api"] },
-                  "weights_hash": { "type": "string" }
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "hosting": {
+                    "type": "string",
+                    "enum": [
+                      "self_hosted",
+                      "provider_api"
+                    ]
+                  },
+                  "weights_hash": {
+                    "type": "string"
+                  }
                 },
                 "description": "Required when action=substitute. Open question OQ1: equivalence semantics."
               }
@@ -256,59 +581,160 @@
     },
     "adjudication": {
       "type": "object",
-      "required": ["burden_of_proof", "confidence_threshold", "default_rule", "on_missing_required_evidence", "injection_screening", "outcome_rule"],
+      "required": [
+        "burden_of_proof",
+        "policy_on_unresolved",
+        "default_rule",
+        "on_missing_required_evidence",
+        "injection_screening",
+        "outcome_rule"
+      ],
       "additionalProperties": false,
       "properties": {
-        "burden_of_proof": { "type": "string", "enum": ["payer", "payee"], "description": "The party whose claim fails when evidence is insufficient." },
-        "confidence_threshold": { "type": "number", "minimum": 0.5, "maximum": 1, "description": "Per-requirement. Below threshold, the requirement resolves by default_rule. See open question OQ4." },
+        "burden_of_proof": {
+          "type": "string",
+          "enum": [
+            "payer",
+            "payee"
+          ],
+          "description": "The party whose claim fails when a requirement cannot be established. Under policy_on_unresolved=resolve_against_burden this field does the work human law assigns to burdens of proof: si non paret, absolvito."
+        },
         "default_rule": {
           "type": "object",
-          "required": ["outcome"],
+          "required": [
+            "outcome"
+          ],
           "additionalProperties": false,
           "properties": {
-            "outcome": { "type": "string", "enum": ["payer", "payee", "split"] },
-            "split_ratio_payer_bps": { "type": "integer", "minimum": 0, "maximum": 10000, "description": "Required when outcome=split. Basis points to payer." }
-          }
+            "outcome": {
+              "type": "string",
+              "enum": [
+                "payer",
+                "payee",
+                "split"
+              ]
+            },
+            "split_ratio_payer_bps": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "description": "Required when outcome=split. Basis points to payer."
+            }
+          },
+          "description": "Contract-level floor. With policy_on_unresolved=resolve_against_burden, requirement-level ambiguity never reaches this rule; it fires only where the manifest explicitly routes to it (e.g. on_missing_required_evidence=default_rule)."
         },
-        "on_missing_required_evidence": { "type": "string", "enum": ["default_rule", "against_responsible_submitter"] },
+        "on_missing_required_evidence": {
+          "type": "string",
+          "enum": [
+            "default_rule",
+            "against_responsible_submitter"
+          ]
+        },
         "injection_screening": {
           "type": "object",
-          "required": ["enabled", "action_on_detection"],
+          "required": [
+            "enabled",
+            "action_on_detection"
+          ],
           "additionalProperties": false,
           "properties": {
-            "enabled": { "type": "boolean", "description": "Must be true in v0.0 when any llm_judge requirement exists (conformance C10)." },
-            "action_on_detection": { "type": "string", "enum": ["rule_against_submitter", "strike_evidence"] }
+            "enabled": {
+              "type": "boolean",
+              "description": "Must be true in v0.0 when any llm_judge requirement exists (conformance C10)."
+            },
+            "action_on_detection": {
+              "type": "string",
+              "enum": [
+                "rule_against_submitter",
+                "strike_evidence"
+              ]
+            }
           }
         },
         "outcome_rule": {
           "type": "object",
-          "required": ["rule"],
+          "required": [
+            "rule"
+          ],
           "additionalProperties": false,
           "properties": {
-            "rule": { "type": "string", "enum": ["all_must_pass", "weighted_threshold"] },
+            "rule": {
+              "type": "string",
+              "enum": [
+                "all_must_pass",
+                "weighted_threshold"
+              ]
+            },
             "weights": {
               "type": "object",
-              "additionalProperties": { "type": "integer", "minimum": 0 },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              },
               "description": "Requirement id -> weight. Required when rule=weighted_threshold."
             },
-            "pass_threshold_bps": { "type": "integer", "minimum": 0, "maximum": 10000, "description": "Required when rule=weighted_threshold." }
+            "pass_threshold_bps": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "description": "Required when rule=weighted_threshold."
+            }
+          }
+        },
+        "policy_on_unresolved": {
+          "type": "object",
+          "required": [
+            "policy"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "policy": {
+              "type": "string",
+              "enum": [
+                "resolve_against_burden",
+                "count_as_pass",
+                "count_as_fail",
+                "escalate_to_default_outcome"
+              ],
+              "description": "What an UNRESOLVED requirement resolves to. v0.0.2 IMPLEMENTS ONLY resolve_against_burden: the requirement resolves against the party bearing burden_of_proof (payee bears burden -> UNRESOLVED counts as not-passed; payer bears burden -> counts as passed). The remaining enum values are RESERVED for future versions and are refused by the validator (conformance C13); contributions welcome \u2014 see spec/adjudication.md."
+            }
           }
         }
       }
     },
     "remedy": {
       "type": "object",
-      "required": ["structure", "ruling_map"],
+      "required": [
+        "structure",
+        "ruling_map"
+      ],
       "additionalProperties": false,
       "properties": {
-        "structure": { "type": "string", "enum": ["challenge_window_escrow", "streaming", "bonded_finality"] },
-        "challenge_window_seconds": { "type": "integer", "minimum": 86400, "description": "Required when structure=challenge_window_escrow (conformance C6)." },
+        "structure": {
+          "type": "string",
+          "enum": [
+            "challenge_window_escrow",
+            "streaming",
+            "bonded_finality"
+          ]
+        },
+        "challenge_window_seconds": {
+          "type": "integer",
+          "minimum": 86400,
+          "description": "Required when structure=challenge_window_escrow (conformance C6)."
+        },
         "stream": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "interval_seconds": { "type": "integer", "minimum": 60 },
-            "dispute_pauses_stream": { "type": "boolean", "const": true }
+            "interval_seconds": {
+              "type": "integer",
+              "minimum": 60
+            },
+            "dispute_pauses_stream": {
+              "type": "boolean",
+              "const": true
+            }
           },
           "description": "Required when structure=streaming."
         },
@@ -316,52 +742,154 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "posted_by": { "type": "string", "enum": ["payee", "payer", "both"] },
-            "amount": { "type": "string", "pattern": "^[0-9]+$" }
+            "posted_by": {
+              "type": "string",
+              "enum": [
+                "payee",
+                "payer",
+                "both"
+              ]
+            },
+            "amount": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            }
           },
           "description": "Required when structure=bonded_finality."
         },
         "ruling_map": {
           "type": "object",
-          "required": ["refused", "payer_wins", "payee_wins"],
+          "required": [
+            "refused",
+            "payer_wins",
+            "payee_wins"
+          ],
           "additionalProperties": false,
           "properties": {
-            "refused": { "type": "string", "enum": ["status_quo"], "description": "Ruling 0 (RefusedToArbitrate): funds follow the remedy structure's no-ruling path." },
-            "payer_wins": { "type": "string", "enum": ["refund", "slash_bond_to_payer", "halt_stream_refund_balance"] },
-            "payee_wins": { "type": "string", "enum": ["release", "release_and_return_bond", "resume_stream"] },
-            "split": { "type": "string", "enum": ["proportional"], "description": "Only meaningful when default_rule.outcome=split or outcome_rule=weighted_threshold. Open question OQ3." }
+            "refused": {
+              "type": "string",
+              "enum": [
+                "status_quo"
+              ],
+              "description": "Ruling 0 (RefusedToArbitrate): funds follow the remedy structure's no-ruling path."
+            },
+            "payer_wins": {
+              "type": "string",
+              "enum": [
+                "refund",
+                "slash_bond_to_payer",
+                "halt_stream_refund_balance"
+              ]
+            },
+            "payee_wins": {
+              "type": "string",
+              "enum": [
+                "release",
+                "release_and_return_bond",
+                "resume_stream"
+              ]
+            },
+            "split": {
+              "type": "string",
+              "enum": [
+                "proportional"
+              ],
+              "description": "Only meaningful when default_rule.outcome=split or outcome_rule=weighted_threshold. Open question OQ3."
+            }
           }
         }
       }
     },
     "arbitrator": {
       "type": "object",
-      "required": ["fee", "erc792_profile"],
+      "required": [
+        "fee",
+        "erc792_profile"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string" },
+        "name": {
+          "type": "string"
+        },
         "fee": {
           "type": "object",
-          "required": ["amount", "paid_by"],
+          "required": [
+            "amount",
+            "paid_by"
+          ],
           "additionalProperties": false,
           "properties": {
-            "amount": { "type": "string", "pattern": "^[0-9]+$", "description": "Same asset as engagement.value unless asset override provided." },
-            "asset_symbol": { "type": "string" },
-            "paid_by": { "type": "string", "enum": ["payer", "payee", "disputant", "split"] }
+            "amount": {
+              "type": "string",
+              "pattern": "^[0-9]+$",
+              "description": "Same asset as engagement.value unless asset override provided."
+            },
+            "asset_symbol": {
+              "type": "string"
+            },
+            "paid_by": {
+              "type": "string",
+              "enum": [
+                "payer",
+                "payee",
+                "disputant",
+                "split"
+              ]
+            }
           }
         },
         "erc792_profile": {
           "type": "object",
-          "required": ["ruling_options"],
+          "required": [
+            "ruling_options"
+          ],
           "additionalProperties": false,
           "properties": {
             "ruling_options": {
               "type": "array",
-              "const": ["RefusedToArbitrate", "PayerWins", "PayeeWins"],
+              "const": [
+                "RefusedToArbitrate",
+                "PayerWins",
+                "PayeeWins"
+              ],
               "description": "Fixed in v0.0 to the standard ERC-792 example enum; ruling 0 is refusal."
             },
-            "arbitrator_address": { "type": "string", "description": "On-chain Arbitrator contract, when deployed." },
-            "meta_evidence_uri": { "type": "string", "description": "Where this manifest rides as ERC-1497 MetaEvidence." }
+            "arbitrator_address": {
+              "type": "string",
+              "description": "On-chain Arbitrator contract, when deployed."
+            },
+            "meta_evidence_uri": {
+              "type": "string",
+              "description": "Where this manifest rides as ERC-1497 MetaEvidence."
+            }
+          }
+        },
+        "erc8210_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "DRAFT STUB (non-normative in v0.0.2). Sketch of composition with ERC-8210 Agent Assurance: a manifest ruling can serve as the dispute attestation making an EvaluatorDispute claim eligible, and remedy.structure=bonded_finality can compile to an AAP JobAssurance. Fields reserved while the 8210 draft evolves.",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "draft-sketch"
+              ]
+            },
+            "coverage_type": {
+              "type": "string",
+              "enum": [
+                "JobFailure",
+                "EvaluatorDispute",
+                "SettlementDefault"
+              ]
+            },
+            "assurance_id": {
+              "type": "string",
+              "description": "AAP JobAssurance identifier this manifest's remedy binds to, when known."
+            },
+            "notes": {
+              "type": "string"
+            }
           }
         }
       }
@@ -370,17 +898,37 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "manifest_hash_algorithm": { "type": "string", "enum": ["keccak256", "sha256"] },
-        "onchain_commitment_tx": { "type": "string" },
+        "manifest_hash_algorithm": {
+          "type": "string",
+          "enum": [
+            "keccak256",
+            "sha256"
+          ]
+        },
+        "onchain_commitment_tx": {
+          "type": "string"
+        },
         "signatures": {
           "type": "array",
           "items": {
             "type": "object",
-            "required": ["party_role", "signature"],
+            "required": [
+              "party_role",
+              "signature"
+            ],
             "additionalProperties": false,
             "properties": {
-              "party_role": { "type": "string", "enum": ["payer", "payee", "attestor"] },
-              "signature": { "type": "string" }
+              "party_role": {
+                "type": "string",
+                "enum": [
+                  "payer",
+                  "payee",
+                  "attestor"
+                ]
+              },
+              "signature": {
+                "type": "string"
+              }
             }
           }
         }

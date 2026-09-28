@@ -61,19 +61,16 @@ export function checkConformance(m: Manifest): Defect[] {
     }
   }
 
-  // ---- C4: odd runs; odd panel under across-panel majority ---------------
+  // ---- C4: odd runs (v0.0.2: odd-panel clause withdrawn; unanimity only) --
   for (const j of panel) {
     if (typeof j?.runs === "number" && j.runs % 2 === 0)
       add("C4", `${j?.id}: runs must be odd; found ${j.runs}`);
   }
-  if (get(m, ["judge", "aggregation", "across_panel"]) === "majority" && panel.length % 2 === 0)
-    add("C4", `across_panel majority requires an odd panel size; found ${panel.length}`);
 
-  // ---- C5: provider_api models require a pinned fallback ladder ----------
-  const hasProviderApi = panel.some((j) => get(j, ["model", "hosting"]) === "provider_api");
-  if (hasProviderApi) {
+  // ---- C5 (revised v0.0.2): every manifest requires a liveness ladder ----
+  {
     if (ladder.length === 0)
-      add("C5", "panel includes provider_api-hosted model(s) but fallback_ladder is empty");
+      add("C5", "fallback_ladder must be non-empty for every manifest (v0.0.2 universal liveness rule): pinned hashes pin a name, not continued availability");
     for (const step of ladder) {
       if (step?.action === "substitute") {
         const sub = step?.substitute;
@@ -123,7 +120,7 @@ export function checkConformance(m: Manifest): Defect[] {
 
   // ---- C9: temperature 0 --------------------------------------------------
   const temp = get(m, ["judge", "sampling", "temperature"]);
-  if (temp !== 0) add("C9", `sampling temperature must be 0 in v0.0; found ${temp}`);
+  if (temp !== 0) add("C9", `sampling temperature must be 0 in v0.0.2; found ${temp}`);
 
   // ---- C10: injection screening on when llm_judge present ----------------
   const hasLlmJudge = requirements.some((r) => get(r, ["evaluation", "method"]) === "llm_judge");
@@ -153,6 +150,40 @@ export function checkConformance(m: Manifest): Defect[] {
       add("C12", `${j?.id}: self_hosted model must include weights_hash`);
     if (!model.version || model.version === "latest")
       add("C12", `${j?.id}: model version must be pinned; 'latest' is non-conforming`);
+  }
+
+
+  // ---- C13 (new v0.0.2): only implemented unresolved-policy is arbitrable -
+  const pol = get(m, ["adjudication", "policy_on_unresolved", "policy"]);
+  if (pol !== "resolve_against_burden")
+    add(
+      "C13",
+      `policy_on_unresolved.policy must be 'resolve_against_burden' in v0.0.2; '${pol}' is ${
+        ["count_as_pass", "count_as_fail", "escalate_to_default_outcome"].includes(pol)
+          ? "reserved and not yet implemented (contributions welcome — see spec/adjudication.md §3)"
+          : "not a recognized policy"
+      }`
+    );
+
+  // ---- C14 (new v0.0.2): aggregation fully parameterized ------------------
+  const wj = get(m, ["judge", "aggregation", "within_judge"]);
+  const ap = get(m, ["judge", "aggregation", "across_panel"]);
+  if (wj?.rule !== "majority_with_dissent_cap")
+    add("C14", `within_judge.rule must be 'majority_with_dissent_cap' in v0.0.2; found '${wj?.rule}'`);
+  if (typeof wj?.max_dissents !== "number")
+    add("C14", "within_judge.max_dissents must be declared");
+  else
+    for (const j of panel) {
+      if (typeof j?.runs === "number" && !(wj.max_dissents < j.runs / 2))
+        add("C14", `${j?.id}: max_dissents (${wj.max_dissents}) must be < runs/2 (runs=${j.runs}) so a tolerated majority is a strict majority`);
+    }
+  if (ap?.rule !== "unanimous")
+    add("C14", `across_panel.rule must be 'unanimous' in v0.0.2; found '${ap?.rule}'`);
+
+  // ---- C15 (new v0.0.2): outcome-relevant transformations are pinned ------
+  for (const e of evidenceItems) {
+    if (e?.transformation && e.transformation !== "none" && !e?.transformation_pin)
+      add("C15", `${e?.id}: transformation '${e.transformation}' requires transformation_pin — an outcome-relevant transformation is part of the committed procedure`);
   }
 
   return defects;

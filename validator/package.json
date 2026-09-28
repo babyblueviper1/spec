@@ -1,7 +1,7 @@
 {
   "name": "@unnamed/procedure-manifest-validator",
-  "version": "0.0.1",
-  "description": "Reference conformance validator for procedure manifests (v0.0). Structural validation + conformance rules C1-C12: the refusal boundary, executable.",
+  "version": "0.0.2",
+  "description": "Reference conformance validator + semantic replay harness for procedure manifests (v0.0.2). Static rules C1-C15 plus the implementation-equivalence property: same manifest + same frozen observations => same authorized remedy.",
   "type": "module",
   "license": "Apache-2.0",
   "engines": {
@@ -11,7 +11,9 @@
     "pm-validate": "./src/cli.ts"
   },
   "scripts": {
-    "validate": "tsx src/cli.ts"
+    "validate": "tsx src/cli.ts",
+    "replay": "tsx src/replay-cli.ts",
+    "test": "tsx src/test.ts"
   },
   "dependencies": {
     "ajv": "^8.17.1",
