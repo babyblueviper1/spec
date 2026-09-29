@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 /**
  * Test suite: static conformance expectations, semantic replay fixtures, and
- * the confidence-invariance property (evidence-only fields cannot move outcomes).
+ * the confidence-invariance property (evidence-only fields cannot move outcomes), and the v0.0.3 draft
+ * acquisition-boundary fixtures F1-F6 with a mutation check over rules C16-C21.
  * Run: npm test   (exit 0 = all green)
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import assert from "node:assert/strict";
@@ -12,6 +13,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import { checkConformance } from "./conformance.ts";
 import { replay, type Verdict } from "./replay.ts";
+import { evaluate, matches, DISABLED } from "./eligibility.ts";
 
 const addFormats = (addFormatsModule as any).default ?? addFormatsModule;
 const here = dirname(fileURLToPath(import.meta.url));
@@ -29,7 +31,7 @@ const check = (name: string, fn: () => void) => {
 };
 
 // ---------- 1. Static conformance expectations ----------
-console.log("[1/3] static conformance");
+console.log("[1/4] static conformance");
 const website = load("../../examples/website-delivery.manifest.json");
 const datafeed = load("../../examples/data-feed-sla.manifest.json");
 const noncon = load("../../examples/nonconforming-pmf-milestone.manifest.json");
@@ -48,7 +50,7 @@ check("nonconforming example is refused", () => {
 });
 
 // ---------- 2. Semantic replay fixtures ----------
-console.log("[2/3] semantic replay fixtures");
+console.log("[2/4] semantic replay fixtures");
 const fixtures: Array<[string, any]> = [
   ["closure-counterexample", website],
   ["parse-rule", datafeed],
@@ -64,7 +66,7 @@ for (const [name, manifest] of fixtures) {
 }
 
 // ---------- 3. Confidence-invariance property ----------
-console.log("[3/3] confidence invariance (evidence-only fields cannot move outcomes)");
+console.log("[3/4] confidence invariance (evidence-only fields cannot move outcomes)");
 check("closure fixture outcome is invariant under confidence permutation", () => {
   const fx = load("../fixtures/closure-counterexample.observations.json");
   const base = replay(website, fx);
@@ -84,6 +86,27 @@ check("closure fixture outcome is invariant under confidence permutation", () =>
   assert.equal(after.contractOutcome, base.contractOutcome);
   assert.equal(after.authorizedRemedy, base.authorizedRemedy);
 });
+
+// ---------- 4. v0.0.3 acquisition boundary (DRAFT fixtures; see fixtures/v0.0.3/README.md) ----------
+console.log("[4/4] v0.0.3 acquisition boundary: F1-F6 fixtures + C16-C21 mutation check (draft)");
+const v003Dir = resolve(here, "../fixtures/v0.0.3");
+const v003 = readdirSync(v003Dir).filter((f) => f.endsWith(".json")).sort()
+  .map((f) => JSON.parse(readFileSync(resolve(v003Dir, f), "utf8")));
+for (const pkg of v003) {
+  check(`v0.0.3 ${pkg.name}: ${pkg.expect.state} / ${pkg.expect.run_verdict}`, () => {
+    const r = evaluate(pkg);
+    assert.ok(matches(r, pkg.expect), `got ${JSON.stringify({ state: r.state, run_verdict: r.run_verdict, terms: r.terms })}; reasons ${r.reasons.join(" | ")}`);
+  });
+}
+for (const rule of ["C16", "C17", "C18", "C19", "C20", "C21"]) {
+  check(`v0.0.3 mutation: disabling ${rule} is caught by at least one fixture`, () => {
+    DISABLED.clear(); DISABLED.add(rule);
+    try {
+      const killers = v003.filter((pkg) => !matches(evaluate(pkg), pkg.expect)).map((pkg) => pkg.name);
+      assert.ok(killers.length > 0, `${rule} is not load-bearing: every fixture still passes with it switched off`);
+    } finally { DISABLED.clear(); }
+  });
+}
 
 console.log(failures === 0 ? "\nALL TESTS PASSED" : `\n${failures} TEST(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);

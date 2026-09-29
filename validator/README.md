@@ -25,9 +25,10 @@ either a bug here or a defect in the spec — both are reportable.
 npm test
 ```
 
-Expected: `ALL TESTS PASSED` (exit 0), covering three groups: static
-conformance of the examples, semantic replay fixtures, and the
-confidence-invariance property.
+Expected: `ALL TESTS PASSED` (exit 0), covering four groups: static
+conformance of the examples, semantic replay fixtures, the
+confidence-invariance property, and the v0.0.3 draft acquisition-boundary
+fixtures (`fixtures/v0.0.3/`, not yet spec text; see its README).
 
 **Step 2 — conforming manifests are accepted.**
 
