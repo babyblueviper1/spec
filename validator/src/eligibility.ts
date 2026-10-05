@@ -15,7 +15,11 @@
  * The draft leaves these encodings open. The choices below are the fixtures' own, and a spec decision replaces them:
  *   H(x)            = sha256 over canonical JSON (sorted keys, no whitespace)
  *   manifest_hash   = H(manifest)
- *   dispute_id      = H({manifest_hash, contract_id, dispute_nonce}), committed before any claim   (C16)
+ *   dispute_id      = H({manifest_hash, contract_id, dispute_nonce}) from dispute_state            (C16)
+ *   ordering        = C16 as hardened in formulary-systems/spec#5: precedence of the dispute commitment over every claim
+ *                     is read ONLY from the profile's ordering_proof -- a hash-chained ordering log whose head is attested
+ *                     by the manifest-pinned ordering_anchor_pubkey (a stand-in for OTS / chain inclusion); log position
+ *                     is the order. committed_at / accepted_at are carried as evidence and never compared.
  *   run_id          = H({manifest_hash, dispute_id, requirement_id, judge_id, run_index})          (section 1)
  *   attempt_id      = H({run_id, attempt_index}), attempt_index < retry_policy.max_attempts      (section 5)
  *   request_hash    = H(requirement.request)                                                       (section 3)
@@ -79,6 +83,39 @@ function admissionReceiptRecomputes(r: Record<string, any>): boolean {
   return H(p) === r.receipt_hash;
 }
 
+const ZERO = "0".repeat(64);
+const claimCore = (c: any) => ({ run_id: c.run_id, attempt_id: c.attempt_id, request_hash: c.request_hash });
+
+/** C16 ordering under the fixture profile. Never reads a clock value. */
+function ordering(pkg: Record<string, any>, acq: Record<string, any>, ds: unknown, claims: any[]): [Term, string | undefined] {
+  const log = pkg.ordering_log, anchor = acq.ordering_anchor_pubkey;
+  if (!log || !anchor) return ["cannot_establish", "no authoritative ordering mechanism: a bare committed_at cannot establish precedence (C16, F6b)"];
+  const entries: any[] = log.entries ?? [];
+  let prev = ZERO;
+  const byHash = new Map<string, any>();
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+    if (e.seq !== i || e.prev !== prev || e.entry_hash !== H({ seq: e.seq, kind: e.kind, ref: e.ref, prev: e.prev }))
+      return ["cannot_establish", `ordering log entry ${i} does not chain (C16)`];
+    prev = e.entry_hash; byHash.set(prev, e);
+  }
+  const cp = log.checkpoint ?? {};
+  if (cp.head !== prev || cp.seq !== entries.length - 1 || !sigOk(cp, anchor))
+    return ["cannot_establish", "ordering checkpoint is not attested by the manifest-pinned anchor over the log head (C16)"];
+  const dseq = [...byHash.values()].filter((e) => e.kind === "dispute_commitment" && e.ref === H(ds)).map((e) => e.seq);
+  if (!dseq.length) return ["cannot_establish", "dispute state is not in the ordering log (C16)"];
+  const cseq: number[] = [];
+  for (const c of claims) {
+    const e = byHash.get(c.ordering_proof);
+    if (!e || e.kind !== "claim" || e.ref !== H(claimCore(c)))
+      return ["cannot_establish", "a claim's ordering_proof does not resolve to its own entry in the ordering log (C16)"];
+    cseq.push(e.seq);
+  }
+  if (cseq.length && Math.min(...dseq) > Math.min(...cseq))
+    return ["false", "the ordering log places the dispute commitment AFTER a claim (C16)"];
+  return ["true", undefined];
+}
+
 export function evaluate(pkg: Record<string, any>): Evaluation {
   const m = pkg.manifest, acq = m.acquisition, reqDef = m.requirements[0];
   const out: Evaluation = { terms: {}, reasons: [], state: "AUTHORIZED", evidence: {} };
@@ -111,9 +148,7 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
   const ds = pkg.dispute_state;
   const derivedDispute = H({ manifest_hash: manifestHash, contract_id: ds.contract_id, dispute_nonce: ds.dispute_nonce });
   const claims: any[] = pkg.claims ?? [];
-  const firstClaimAt = claims.length ? Math.min(...claims.map((c) => c.accepted_at)) : undefined;
-  const disputeOk = (pkg.dispute_id === derivedDispute && (firstClaimAt === undefined || ds.committed_at < firstClaimAt))
-    || DISABLED.has("C16");
+  let derivedOk = pkg.dispute_id === derivedDispute;
   const runId = H({ manifest_hash: manifestHash, dispute_id: pkg.dispute_id, requirement_id: reqDef.requirement_id,
     judge_id: reqDef.judge_id, run_index: 0 });
   const maxAtt = Number(acq.retry_policy.max_attempts);
@@ -125,7 +160,11 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
   const validClaims = claims.filter(claimValid)
     .sort((a, b) => attemptIds.indexOf(a.attempt_id) - attemptIds.indexOf(b.attempt_id));
 
-  if (!disputeOk) out.reasons.push("dispute_id not derived from pre-result committed state, or committed after execution (C16)");
+  let [order, why] = ordering(pkg, acq, ds, validClaims);
+  if (DISABLED.has("C16")) { derivedOk = true; order = "true"; why = undefined; }
+  if (!derivedOk) out.reasons.push("dispute_id is not the derivation from committed dispute state (C16, F6)");
+  if (why) out.reasons.push(why);
+  const auth16: Term = !derivedOk || order === "false" ? "false" : order;   // true / false / cannot_establish
   if (!validClaims.length) {
     Object.assign(T, { authorized_execution: "false", exact_request_binding: "cannot_establish",
       unique_terminal_execution: "cannot_establish", sufficient_scope: "cannot_establish" });
@@ -136,6 +175,18 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
     return finish(out, undefined);
   }
   out.state = "CLAIMED";
+  const perAttempt = new Map<string, Set<string>>();
+  for (const c of validClaims) {
+    if (!perAttempt.has(c.attempt_id)) perAttempt.set(c.attempt_id, new Set());
+    perAttempt.get(c.attempt_id)!.add(H(c));
+  }
+  if ([...perAttempt.values()].some((v) => v.size > 1) && !DISABLED.has("C18")) {
+    out.state = "EQUIVOCATION";
+    Object.assign(T, { authorized_execution: "false", exact_request_binding: "cannot_establish",
+      unique_terminal_execution: "cannot_establish", sufficient_scope: "cannot_establish" });
+    out.reasons.push("two distinct authentic claims for one authorized attempt_id; neither may acquire authority (C18, F1b)");
+    return finish(out, undefined);
+  }
 
   const terminalsFor = (c: any) => {
     const crh = H(c);
@@ -151,7 +202,7 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
     for (const t of ts) distinct.set(JSON.stringify([t.terminal_status, t.output_hash ?? null]), t);
     if (distinct.size > 1 && !DISABLED.has("C19")) {
       out.state = "EQUIVOCATION";
-      Object.assign(T, { authorized_execution: disputeOk ? "true" : "false", exact_request_binding: "cannot_establish",
+      Object.assign(T, { authorized_execution: auth16, exact_request_binding: "cannot_establish",
         unique_terminal_execution: "false", sufficient_scope: "cannot_establish" });
       out.reasons.push("conflicting attested terminals for one claimed attempt; none may be chosen (C19)");
       return finish(out, undefined);
@@ -177,7 +228,7 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
     break;
   }
 
-  T.authorized_execution = disputeOk && !retryViolation ? "true" : "false";
+  T.authorized_execution = retryViolation ? "false" : auth16;
   if (!chosen) {
     T.exact_request_binding ??= "cannot_establish";
     T.unique_terminal_execution ??= "cannot_establish";
@@ -190,7 +241,7 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
   T.exact_request_binding = c.request_hash === H(reqDef.request) || DISABLED.has("C17") ? "true" : "false";
   if (T.exact_request_binding === "false")
     out.reasons.push("claim binds the right slot to a request_hash that differs from the committed request (C17)");
-  const need: string[] = reqDef.required_scope, got = new Set<string>(t.observation_scope ?? []);
+  const need: string[] = reqDef.required_scope, got = new Set<string>(t.observed_scope ?? []);
   T.sufficient_scope = need.every((s) => got.has(s)) || DISABLED.has("C21") ? "true" : "false";
   if (T.sufficient_scope === "false")
     out.reasons.push(`observation scope [${[...got].sort()}] does not cover required_scope [${[...need].sort()}] (C21)`);
