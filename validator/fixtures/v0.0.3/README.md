@@ -23,6 +23,9 @@ That checker was written from the draft text alone and has its own `mutation_che
 | F6b unauthoritative predecessor ordering | UNRESOLVED, `authorized_execution: cannot_establish` | C16: `committed_at` precedes `accepted_at`, but there is no ordering proof |
 | F6c log orders dispute after claim | UNRESOLVED, `false` | C16: the clocks say before, the attested log says after |
 | N2 checkpoint not by anchor | UNRESOLVED, `cannot_establish` | C16: an order attested by the provider is the executor side's own assertion |
+| F7 retry after attested UNRESOLVED | UNRESOLVED, `authorized_execution: false` | §7 / C20: TERMINAL_UNRESOLVED consumes the run; the next attempt is not authorized |
+| F8 retry predicate not committed | UNRESOLVED, state ATTESTED_NO_RESULT | §7 / C20: `max_attempts` 2 but `allowed_after` empty; a NO_RESULT opens a retry only if the manifest committed it |
+| F9 manifest commits retry after UNRESOLVED | UNRESOLVED, state FORMATION_REFUSED | §7 / C20: `allowed_after` lists TERMINAL_UNRESOLVED, so the manifest is refused at formation |
 | N1 claim signed by requester | UNRESOLVED | C18 |
 | R-F3 / R-P / R-F5 | UNRESOLVED | real objects: a live admission receipt and a live requester-signed commitment (see below) |
 

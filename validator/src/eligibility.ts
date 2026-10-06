@@ -144,6 +144,19 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
     return finish(out, undefined);
   }
 
+  // section 7 (formulary-systems/spec#5 final, 2026-10-06): the manifest commits the retry predicate and it may only be ATTESTED_NO_RESULT.
+  // TERMINAL_UNRESOLVED consumes the run and can never open a retry, so a manifest that says otherwise is refused at formation.
+  const allowed: string[] = acq.retry_policy?.allowed_after ?? [];
+  const retryCommitted = allowed.includes("ATTESTED_NO_RESULT");
+  if (allowed.some((x) => x !== "ATTESTED_NO_RESULT") && !DISABLED.has("C20")) {
+    out.state = "FORMATION_REFUSED";
+    Object.assign(T, { authorized_execution: "false", exact_request_binding: "cannot_establish",
+      unique_terminal_execution: "cannot_establish", sufficient_scope: "cannot_establish" });
+    out.reasons.push(`retry_policy.allowed_after [${[...allowed].sort()}] commits a retry predicate other than ATTESTED_NO_RESULT; `
+      + "TERMINAL_UNRESOLVED consumes the run (section 7, C20) -> refused at formation");
+    return finish(out, undefined);
+  }
+
   const manifestHash = H(m);
   const ds = pkg.dispute_state;
   const derivedDispute = H({ manifest_hash: manifestHash, contract_id: ds.contract_id, dispute_nonce: ds.dispute_nonce });
@@ -211,7 +224,11 @@ export function evaluate(pkg: Record<string, any>): Evaluation {
     const later = validClaims.slice(k + 1);
     if (status === "NO_RESULT") {
       if (!later.length) out.state = "ATTESTED_NO_RESULT";
-      continue;                                  // an attested absence is the only thing that opens the next attempt
+      if (retryCommitted || DISABLED.has("C20") || !later.length) continue;   // opens the next attempt only if the manifest committed it
+      out.state = "ATTESTED_NO_RESULT";
+      retryViolation = true;
+      out.reasons.push("retry after an attested NO_RESULT, but the manifest committed no ATTESTED_NO_RESULT retry predicate (section 7, C20)");
+      break;
     }
     if (later.length && !DISABLED.has("C20")) {
       retryViolation = true;
